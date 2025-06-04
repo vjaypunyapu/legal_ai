@@ -1,0 +1,1 @@
+# Bash startup script for Linux/Unix

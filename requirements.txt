@@ -1,0 +1,10 @@
+streamlit
+fastapi
+uvicorn
+python-jose
+pdfplumber
+pytesseract
+pdf2image
+chromadb
+llama-index
+requests
