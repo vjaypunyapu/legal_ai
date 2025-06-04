@@ -1,1 +1,1 @@
-# Dockerfile for FastAPI backend
+# Dockerfile for FastAPI
