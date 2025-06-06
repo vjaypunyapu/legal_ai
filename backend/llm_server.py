@@ -3,10 +3,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from jose import jwt
 from passlib.context import CryptContext
+from sqlalchemy import Column, String, Boolean, DateTime, create_engine
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker, Session
 import uvicorn
 import os
 import shutil
-from typing import Dict
+from datetime import datetime
 
 app = FastAPI()
 
@@ -18,113 +21,166 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# ======= DATABASE SETUP =======
+DATABASE_URL = "sqlite:///./users.db"
+engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+SessionLocal = sessionmaker(bind=engine)
+Base = declarative_base()
+
+class User(Base):
+    __tablename__ = "users"
+    email = Column(String, primary_key=True, index=True)
+    password = Column(String)
+    role = Column(String)
+    activated = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    last_login = Column(DateTime, nullable=True)
+
+Base.metadata.create_all(bind=engine)
+
+# ======= AUTH SETUP =======
 SECRET_KEY = "secret"
 ALGORITHM = "HS256"
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login")
 
-users_db: Dict[str, Dict] = {
-    "admin@example.com": {
-        "password": pwd_context.hash("admin123"),
-        "role": "admin",
-        "activated": True
-    },
-    "assistant@example.com": {
-        "password": pwd_context.hash("assistant123"),
-        "role": "assistant",
-        "activated": True
-    }
-}
+# ======= UTIL FUNCTIONS =======
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
 
-def authenticate_user(username: str, password: str):
-    user = users_db.get(username)
-    if user and verify_password(password, user["password"]):
+def get_password_hash(password):
+    return pwd_context.hash(password)
+
+def authenticate_user(db: Session, username: str, password: str):
+    user = db.query(User).filter(User.email == username).first()
+    if user and verify_password(password, user.password):
         return user
     return None
 
 def create_access_token(data: dict):
     return jwt.encode(data, SECRET_KEY, algorithm=ALGORITHM)
 
-def get_current_user(token: str = Security(oauth2_scheme)):
+def get_current_user(token: str = Security(oauth2_scheme), db: Session = Depends(get_db)):
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username = payload.get("sub")
-        if username is None or username not in users_db:
+        if username is None:
             raise HTTPException(status_code=401, detail="Invalid authentication credentials")
-        return users_db[username]
+        user = db.query(User).filter(User.email == username).first()
+        if user is None:
+            raise HTTPException(status_code=401, detail="User not found")
+        return user
     except Exception:
         raise HTTPException(status_code=401, detail="Invalid token")
 
+# ======= ROUTES =======
 @app.post("/login")
-def login(form_data: OAuth2PasswordRequestForm = Depends()):
-    user = authenticate_user(form_data.username, form_data.password)
+def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+    user = authenticate_user(db, form_data.username, form_data.password)
     if not user:
         raise HTTPException(status_code=401, detail="Invalid username or password")
-    if not user.get("activated"):
+    if not user.activated:
         raise HTTPException(status_code=403, detail="User not activated")
-    token = create_access_token({"sub": form_data.username, "role": user["role"]})
+    user.last_login = datetime.utcnow()
+    db.commit()
+    token = create_access_token({"sub": user.email, "role": user.role})
     return {"access_token": token, "token_type": "bearer"}
 
+from fastapi import UploadFile, File, Form, HTTPException
+import fitz  # PyMuPDF
+
 @app.post("/ask")
-def ask_question(file: UploadFile = File(...), question: str = Form(...), user: dict = Depends(get_current_user)):
-    try:
-        contents = file.file.read().decode("utf-8")
-        answer = f"Answer to '{question}' based on uploaded document."
-        return {"answer": answer}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-    finally:
-        file.file.close()
+async def ask_question(file: UploadFile = File(...), question: str = Form(...)):
+    filename = file.filename
+    contents = await file.read()
+
+    # Process PDF
+    if filename.endswith(".pdf"):
+        try:
+            with open("temp.pdf", "wb") as f:
+                f.write(contents)
+
+            doc = fitz.open("temp.pdf")
+            text = ""
+            for page in doc:
+                text += page.get_text()
+            doc.close()
+
+            # Simulated response (replace with actual LLM call)
+            answer = f"📄 PDF parsed. Question: '{question}'\n\nExtract:\n{text[:500]}..."
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Error reading PDF: {e}")
+
+    # Process plain text
+    elif filename.endswith(".txt"):
+        try:
+            text = contents.decode("utf-8")
+            answer = f"📝 Text file parsed. Question: '{question}'\n\nExtract:\n{text[:500]}..."
+        except Exception as e:
+            raise HTTPException(status_code=400, detail="Invalid UTF-8 text file.")
+    else:
+        raise HTTPException(status_code=400, detail="Only .pdf and .txt files are supported.")
+
+    return {"answer": answer}
 
 @app.get("/admin/users")
-def get_users():
-    return users_db
+def get_users(db: Session = Depends(get_db)):
+    return db.query(User).all()
 
 @app.post("/admin/users")
-def add_user(username: str = Query(...), password: str = Query(...), role: str = Query(...)):
-    if username in users_db:
+def add_user(username: str = Query(...), password: str = Query(...), role: str = Query(...), db: Session = Depends(get_db)):
+    existing = db.query(User).filter(User.email == username).first()
+    if existing:
         raise HTTPException(status_code=400, detail="User already exists")
-    users_db[username] = {
-        "password": pwd_context.hash(password),
-        "role": role,
-        "activated": False
-    }
+    user = User(email=username, password=get_password_hash(password), role=role, activated=False)
+    db.add(user)
+    db.commit()
     return {"detail": "User added"}
 
 @app.delete("/admin/users")
-def delete_user(username: str = Query(...)):
-    if username not in users_db:
+def delete_user(username: str = Query(...), db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.email == username).first()
+    if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    if username == "admin@example.com":
+    if user.email == "admin@example.com":
         raise HTTPException(status_code=403, detail="Cannot delete default admin")
-    del users_db[username]
+    db.delete(user)
+    db.commit()
     return {"detail": "User deleted"}
 
 @app.post("/send-activation")
-def send_activation(email: str = Query(...), role: str = Query(...)):
-    if email not in users_db:
+def send_activation(email: str = Query(...), db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.email == email).first()
+    if not user:
         raise HTTPException(status_code=404, detail="User not found")
     activation_link = f"http://localhost:8501/activate?email={email}"
     print(f"Sending activation link to {email}: {activation_link}")
     return {"activation_link": activation_link, "detail": "Email sent"}
 
 @app.post("/activate")
-def activate_user(email: str = Query(...)):
-    if email in users_db:
-        users_db[email]["activated"] = True
+def activate_user(email: str = Query(...), db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.email == email).first()
+    if user:
+        user.activated = True
+        db.commit()
         return {"detail": "User activated"}
     else:
         raise HTTPException(status_code=404, detail="User not found")
-    
 
 @app.post("/admin/force-activate")
-def force_activate_user(username: str = Query(...)):
-    if username not in users_db:
+def force_activate_user(username: str = Query(...), db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.email == username).first()
+    if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    users_db[username]["activated"] = True
+    user.activated = True
+    db.commit()
     return {"detail": "User manually activated by admin"}
 
 if __name__ == "__main__":

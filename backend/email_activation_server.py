@@ -23,7 +23,7 @@ USER_DB_PATH = "users.json"
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 SMTP_EMAIL = "vjaypunyapu26@gmail.com"
-SMTP_PASSWORD = "tajm czva ktnn uein"  # App Password
+SMTP_PASSWORD = "wpof jbvu xzqw zvkb"  # App Password
 SMTP_SERVER = "smtp.gmail.com"
 SMTP_PORT = 587
 

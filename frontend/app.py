@@ -85,7 +85,7 @@ else:
     if st.session_state.role == "admin":
         if menu == "Dashboard":
             st.title("🛠 Admin Dashboard")
-            st.write("Welcome to the Admin Control Center")
+            st.success("Welcome to the Admin Control Center")
 
         elif menu == "Logs":
             st.title("📜 Recent Assistant Queries")
@@ -119,15 +119,16 @@ else:
                         )
                         if res.status_code == 200:
                             activation = requests.post(
-                                f"http://localhost:8000/send-activation?email={new_username}&role={new_role}",
+                                f"http://localhost:8000/send-activation?email={new_username}",
                                 headers={"Authorization": f"Bearer {st.session_state.token}"}
                             )
-                            data = activation.json()
+                            st.success("User added.")
                             if activation.status_code == 200:
-                                st.success("User added and activation email sent.")
+                                data = activation.json()
+                                st.success("✅ Activation email sent.")
+                                st.code(data.get("activation_link", "No link returned"), language="text")
                             else:
-                                st.warning(f"⚠️ Activation email failed: {activation.text}")
-                            st.code(data.get("activation_link", "No link returned"), language="text")
+                                st.warning("⚠️ Failed to send activation email.")
                             st.rerun()
                         else:
                             st.error(res.json().get("detail"))
@@ -135,7 +136,7 @@ else:
                         st.warning("Enter both username and password.")
 
             with st.expander("❌ Delete User"):
-                user_to_delete = st.selectbox("Select user to delete", [u for u in users if u != "admin"])
+                user_to_delete = st.selectbox("Select user to delete", [u["email"] for u in users if u["email"] != "admin@example.com"])
                 if st.button("Delete User"):
                     res = requests.delete(
                         f"http://localhost:8000/admin/users?username={user_to_delete}",
@@ -146,42 +147,40 @@ else:
                         st.rerun()
                     else:
                         st.error(res.json().get("detail"))
+
             with st.expander("👥 Current Users"):
-                for username, info in users.items():
-                    col1, col2, col3, col4 = st.columns([3, 2, 2, 2])
+                for user in users:
+                    username = user["email"]
+                    role = user["role"]
+                    activated = user["activated"]
+
+                    col1, col2, col3, col4, col5 = st.columns([3, 2, 2, 2, 2])
                     with col1:
                         st.write(username)
                     with col2:
-                        st.write(info["role"])
+                        st.write(role)
                     with col3:
-                        st.write("✅" if info.get("activated") else "❌")
+                        st.write("✅" if activated else "❌")
                     with col4:
-                        if not info.get("activated") and st.button(f"Activate {username}", key=f"activate_{username}"):
+                        if not activated and st.button(f"Force Activate", key=f"force_{username}"):
                             res = requests.post(
                                 f"http://localhost:8000/admin/force-activate?username={username}",
                                 headers={"Authorization": f"Bearer {st.session_state.token}"}
                             )
                             if res.status_code == 200:
-                                st.success(f"{username} manually activated.")
+                                st.success(f"{username} activated.")
                                 st.rerun()
                             else:
-                                st.error(f"Failed to activate {username}: {res.json().get('detail')}")
-
-
-            with st.expander("📧 Send Activation Email"):
-                email = st.text_input("Enter new user's email")
-                role = st.selectbox("Select role", ["assistant", "admin"], key="role_select")
-                if st.button("Send Activation Email"):
-                    if not email:
-                        st.error("Please enter a valid email address.")
-                    else:
-                        response = requests.post(
-                            f"http://localhost:8000/send-activation?email={email}&role={role}",
-                            headers={"Authorization": f"Bearer {st.session_state.token}"}
-                        )
-                        if response.status_code == 200:
-                            data = response.json()
-                            st.success(f"✅ Activation email sent to {email}")
-                            st.code(data.get("activation_link", "No link returned"), language="text")
-                        else:
-                            st.error(f"❌ Failed to send activation email: {response.text}")
+                                st.error("Activation failed")
+                    with col5:
+                        if not activated and st.button(f"Resend Email", key=f"resend_{username}"):
+                            response = requests.post(
+                                f"http://localhost:8000/send-activation?email={username}",
+                                headers={"Authorization": f"Bearer {st.session_state.token}"}
+                            )
+                            if response.status_code == 200:
+                                data = response.json()
+                                st.success("✅ Email resent")
+                                st.code(data.get("activation_link", "No link returned"), language="text")
+                            else:
+                                st.error("❌ Failed to resend email")
