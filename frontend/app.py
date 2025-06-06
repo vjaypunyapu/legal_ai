@@ -42,10 +42,17 @@ else:
         st.image("https://cdn-icons-png.flaticon.com/512/2884/2884523.png", width=50)
         st.markdown("### Legal AI Navigation")
         st.markdown(f"**Role:** {st.session_state.role}")
+        if st.session_state.role == "admin":
+            menu_options = ["Dashboard", "Users", "Logs", "Search"]
+            icons = ["house", "person-plus", "file-earmark-text", "search"]
+        else:
+            menu_options = ["Search"]
+            icons = ["search"]
+
         menu = option_menu(
             menu_title="Navigate",
-            options=["Dashboard", "Users", "Logs"] + (["Assistant"] if st.session_state.role == "assistant" else []),
-            icons=["house", "person-plus", "file-earmark-text", "robot"],
+            options=menu_options,
+            icons=icons,
             menu_icon="cast",
             default_index=0,
             orientation="vertical"
@@ -55,6 +62,25 @@ else:
             st.session_state.token = None
             st.session_state.role = None
             st.rerun()
+
+    if menu == "Search":
+        st.title("🔍 Search Legal Documents")
+        with st.expander("📄 Upload and Ask"):
+            uploaded_file = st.file_uploader("Upload a legal document", type=["pdf"])
+            question = st.text_input("Ask a question about the document")
+            if st.button("Submit") and uploaded_file and question:
+                with st.spinner("Thinking..."):
+                    response = requests.post(
+                        "http://localhost:8000/ask",
+                        files={"file": uploaded_file},
+                        data={"question": question},
+                        headers={"Authorization": f"Bearer {st.session_state.token}"}
+                    )
+                    if response.status_code == 200:
+                        st.success("Answer:")
+                        st.write(response.json()["answer"])
+                    else:
+                        st.error(response.json().get("detail", "Something went wrong."))
 
     if st.session_state.role == "admin":
         if menu == "Dashboard":
@@ -92,7 +118,16 @@ else:
                             headers={"Authorization": f"Bearer {st.session_state.token}"}
                         )
                         if res.status_code == 200:
-                            st.success("User added.")
+                            activation = requests.post(
+                                f"http://localhost:8000/send-activation?email={new_username}&role={new_role}",
+                                headers={"Authorization": f"Bearer {st.session_state.token}"}
+                            )
+                            data = activation.json()
+                            if activation.status_code == 200:
+                                st.success("User added and activation email sent.")
+                            else:
+                                st.warning(f"⚠️ Activation email failed: {activation.text}")
+                            st.code(data.get("activation_link", "No link returned"), language="text")
                             st.rerun()
                         else:
                             st.error(res.json().get("detail"))
@@ -111,9 +146,27 @@ else:
                         st.rerun()
                     else:
                         st.error(res.json().get("detail"))
-
             with st.expander("👥 Current Users"):
-                st.table([{"Username": u, "Role": users[u]["role"]} for u in users])
+                for username, info in users.items():
+                    col1, col2, col3, col4 = st.columns([3, 2, 2, 2])
+                    with col1:
+                        st.write(username)
+                    with col2:
+                        st.write(info["role"])
+                    with col3:
+                        st.write("✅" if info.get("activated") else "❌")
+                    with col4:
+                        if not info.get("activated") and st.button(f"Activate {username}", key=f"activate_{username}"):
+                            res = requests.post(
+                                f"http://localhost:8000/admin/force-activate?username={username}",
+                                headers={"Authorization": f"Bearer {st.session_state.token}"}
+                            )
+                            if res.status_code == 200:
+                                st.success(f"{username} manually activated.")
+                                st.rerun()
+                            else:
+                                st.error(f"Failed to activate {username}: {res.json().get('detail')}")
+
 
             with st.expander("📧 Send Activation Email"):
                 email = st.text_input("Enter new user's email")
@@ -132,23 +185,3 @@ else:
                             st.code(data.get("activation_link", "No link returned"), language="text")
                         else:
                             st.error(f"❌ Failed to send activation email: {response.text}")
-
-    elif st.session_state.role == "assistant" and menu == "Assistant":
-        st.title("📄 Legal AI Assistant")
-        uploaded_file = st.file_uploader("Upload a legal document", type=["pdf"])
-        question = st.text_input("Ask a question about the document")
-        if st.button("Submit") and uploaded_file and question:
-            with st.spinner("Thinking..."):
-                response = requests.post(
-                    "http://localhost:8000/ask",
-                    files={"file": uploaded_file},
-                    data={"question": question},
-                    headers={"Authorization": f"Bearer {st.session_state.token}"}
-                )
-                if response.status_code == 200:
-                    st.success("Answer:")
-                    st.write(response.json()["answer"])
-                else:
-                    st.error(response.json()["detail"])
-    else:
-        st.error("Unauthorized user role.")
