@@ -30,7 +30,8 @@ python -m venv .venv
 # On Windows
 .\.venv\Scripts\activate
 # On macOS/Linux
-source .venv/bin/activate
+source .venv/Scripts/activate
+
 ```
 
 ### 3. Install Python Dependencies
