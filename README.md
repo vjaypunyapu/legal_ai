@@ -83,6 +83,16 @@ Then visit: [http://localhost:8501](http://localhost:8501)
 - **Password:** `test123`
 
 ---
+## 👤Admin APIs
+You can add, delete, and activate users via FastAPI endpoints:
+
+POST /admin/users?username=...&password=...&role=...
+
+DELETE /admin/users?username=...
+
+POST /send-activation?email=...
+
+POST /admin/force-activate?username=...
 
 ## 📝 Example PDF to Test
 
@@ -91,6 +101,9 @@ You can upload a legal PDF like an NDA, lease, or contract and ask:
 - "What is the duration of the agreement?"
 - "Is third-party disclosure allowed?"
 - "What happens in case of breach?"
+
+## 📝 License
+MIT License – Use freely with attribution.
 
 ---
 
