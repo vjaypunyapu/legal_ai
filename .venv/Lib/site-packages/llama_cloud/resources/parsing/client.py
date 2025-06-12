@@ -232,6 +232,7 @@ class ParsingClient:
         language: typing.List[ParserLanguages],
         extract_layout: bool,
         max_pages: typing.Optional[int] = OMIT,
+        outlined_table_extraction: bool,
         output_pdf_of_document: bool,
         output_s_3_path_prefix: str,
         output_s_3_region: str,
@@ -359,6 +360,8 @@ class ParsingClient:
             - extract_layout: bool.
 
             - max_pages: typing.Optional[int].
+
+            - outlined_table_extraction: bool.
 
             - output_pdf_of_document: bool.
 
@@ -493,6 +496,7 @@ class ParsingClient:
             "invalidate_cache": invalidate_cache,
             "language": language,
             "extract_layout": extract_layout,
+            "outlined_table_extraction": outlined_table_extraction,
             "output_pdf_of_document": output_pdf_of_document,
             "output_s3_path_prefix": output_s_3_path_prefix,
             "output_s3_region": output_s_3_region,
@@ -1258,6 +1262,7 @@ class AsyncParsingClient:
         language: typing.List[ParserLanguages],
         extract_layout: bool,
         max_pages: typing.Optional[int] = OMIT,
+        outlined_table_extraction: bool,
         output_pdf_of_document: bool,
         output_s_3_path_prefix: str,
         output_s_3_region: str,
@@ -1385,6 +1390,8 @@ class AsyncParsingClient:
             - extract_layout: bool.
 
             - max_pages: typing.Optional[int].
+
+            - outlined_table_extraction: bool.
 
             - output_pdf_of_document: bool.
 
@@ -1519,6 +1526,7 @@ class AsyncParsingClient:
             "invalidate_cache": invalidate_cache,
             "language": language,
             "extract_layout": extract_layout,
+            "outlined_table_extraction": outlined_table_extraction,
             "output_pdf_of_document": output_pdf_of_document,
             "output_s3_path_prefix": output_s_3_path_prefix,
             "output_s3_region": output_s_3_region,

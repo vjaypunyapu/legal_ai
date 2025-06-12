@@ -1,15 +1,27 @@
+from datetime import datetime
+import os
+import shutil
+import traceback
+
+import fitz  # PyMuPDF
+import uvicorn
 from fastapi import FastAPI, File, UploadFile, Form, HTTPException, Depends, Query, Security
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from jose import jwt
 from passlib.context import CryptContext
 from sqlalchemy import Column, String, Boolean, DateTime, create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, Session
-import uvicorn
-import os
-import shutil
-from datetime import datetime
+from sqlalchemy.orm import declarative_base, sessionmaker, Session
+
+from llama_index.core.readers.file.base import SimpleDirectoryReader
+
+
+
+from llama_index.core import VectorStoreIndex, Settings
+from llama_index.embeddings.huggingface import HuggingFaceEmbedding
+from llama_index.llms.ollama import Ollama
+from llama_index.core.node_parser import SentenceSplitter
+from llama_index.core.response_synthesizers import CompactAndRefine
 
 app = FastAPI()
 
@@ -93,42 +105,49 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
     token = create_access_token({"sub": user.email, "role": user.role})
     return {"access_token": token, "token_type": "bearer"}
 
-from fastapi import UploadFile, File, Form, HTTPException
-import fitz  # PyMuPDF
-
 @app.post("/ask")
-async def ask_question(file: UploadFile = File(...), question: str = Form(...)):
-    filename = file.filename
-    contents = await file.read()
+def ask_question(file: UploadFile = File(...), question: str = Form(...), user: User = Depends(get_current_user)):
+    try:
+        with open("temp.pdf", "wb") as f:
+            f.write(file.file.read())
 
-    # Process PDF
-    if filename.endswith(".pdf"):
-        try:
-            with open("temp.pdf", "wb") as f:
-                f.write(contents)
+        doc = fitz.open("temp.pdf")
+        full_text = ""
+        for page in doc:
+            full_text += page.get_text()
+        doc.close()
 
-            doc = fitz.open("temp.pdf")
-            text = ""
-            for page in doc:
-                text += page.get_text()
-            doc.close()
+        with open("temp.txt", "w", encoding="utf-8") as f:
+            f.write(full_text)
 
-            # Simulated response (replace with actual LLM call)
-            answer = f"📄 PDF parsed. Question: '{question}'\n\nExtract:\n{text[:500]}..."
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Error reading PDF: {e}")
+        documents = SimpleDirectoryReader(input_files=["temp.txt"]).load_data()
 
-    # Process plain text
-    elif filename.endswith(".txt"):
-        try:
-            text = contents.decode("utf-8")
-            answer = f"📝 Text file parsed. Question: '{question}'\n\nExtract:\n{text[:500]}..."
-        except Exception as e:
-            raise HTTPException(status_code=400, detail="Invalid UTF-8 text file.")
-    else:
-        raise HTTPException(status_code=400, detail="Only .pdf and .txt files are supported.")
+        # Set up embedding and LLM
+        from pathlib import Path
 
-    return {"answer": answer}
+        Settings.embed_model = HuggingFaceEmbedding(
+            model_name="sentence-transformers/all-MiniLM-L6-v2",
+            cache_folder=Path("./hf_cache")
+        )
+
+
+        Settings.llm = Ollama(
+            model="mistral",
+            request_timeout=180  # seconds
+        )
+
+        index = VectorStoreIndex.from_documents(documents)
+        query_engine = index.as_query_engine()
+        response = query_engine.query(question)
+
+        return {"answer": response.response}
+
+    except Exception as e:
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"PDF/Q&A error: {str(e)}")
+    finally:
+        file.file.close()
+
 
 @app.get("/admin/users")
 def get_users(db: Session = Depends(get_db)):
@@ -182,6 +201,3 @@ def force_activate_user(username: str = Query(...), db: Session = Depends(get_db
     user.activated = True
     db.commit()
     return {"detail": "User manually activated by admin"}
-
-if __name__ == "__main__":
-    uvicorn.run("backend.llm_server:app", host="127.0.0.1", port=8000, reload=True)

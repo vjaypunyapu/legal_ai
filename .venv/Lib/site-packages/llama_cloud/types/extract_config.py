@@ -24,6 +24,9 @@ class ExtractConfig(pydantic.BaseModel):
 
     extraction_target: typing.Optional[ExtractTarget] = pydantic.Field(description="The extraction target specified.")
     extraction_mode: typing.Optional[ExtractMode] = pydantic.Field(description="The extraction mode specified.")
+    multimodal_fast_mode: typing.Optional[bool] = pydantic.Field(
+        description="Whether to use fast mode for multimodal extraction."
+    )
     system_prompt: typing.Optional[str]
     use_reasoning: typing.Optional[bool] = pydantic.Field(description="Whether to use reasoning for the extraction.")
     cite_sources: typing.Optional[bool] = pydantic.Field(description="Whether to cite sources for the extraction.")

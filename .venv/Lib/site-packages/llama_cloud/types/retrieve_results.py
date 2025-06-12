@@ -5,6 +5,7 @@ import typing
 
 from ..core.datetime_utils import serialize_datetime
 from .metadata_filters import MetadataFilters
+from .page_figure_node_with_score import PageFigureNodeWithScore
 from .page_screenshot_node_with_score import PageScreenshotNodeWithScore
 from .text_node_with_score import TextNodeWithScore
 
@@ -27,7 +28,10 @@ class RetrieveResults(pydantic.BaseModel):
         description="The nodes retrieved by the pipeline for the given query."
     )
     image_nodes: typing.Optional[typing.List[PageScreenshotNodeWithScore]] = pydantic.Field(
-        description="The image nodes retrieved by the pipeline for the given query."
+        description="The image nodes retrieved by the pipeline for the given query. Deprecated - will soon be replaced with 'page_screenshot_nodes'."
+    )
+    page_figure_nodes: typing.Optional[typing.List[PageFigureNodeWithScore]] = pydantic.Field(
+        description="The page figure nodes retrieved by the pipeline for the given query."
     )
     retrieval_latency: typing.Optional[typing.Dict[str, float]] = pydantic.Field(
         description="The end-to-end latency for retrieval and reranking."

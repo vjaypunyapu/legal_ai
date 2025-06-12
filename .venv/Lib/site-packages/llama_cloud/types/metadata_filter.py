@@ -20,7 +20,7 @@ class MetadataFilter(pydantic.BaseModel):
     """
     Comprehensive metadata filter for vector stores to support more operators.
 
-    Value uses Strict\* types, as int, float and str are compatible types and were all
+    Value uses Strict types, as int, float and str are compatible types and were all
     converted to string before.
 
     See: https://docs.pydantic.dev/latest/usage/types/#strict-types

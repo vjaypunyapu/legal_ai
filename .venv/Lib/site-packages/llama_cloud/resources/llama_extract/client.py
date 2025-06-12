@@ -40,24 +40,26 @@ class LlamaExtractClient:
     def __init__(self, *, client_wrapper: SyncClientWrapper):
         self._client_wrapper = client_wrapper
 
-    def list_extraction_agents(self, *, project_id: str) -> typing.List[ExtractAgent]:
+    def list_extraction_agents(
+        self, *, project_id: typing.Optional[str] = None, organization_id: typing.Optional[str] = None
+    ) -> typing.List[ExtractAgent]:
         """
         Parameters:
-            - project_id: str.
+            - project_id: typing.Optional[str].
+
+            - organization_id: typing.Optional[str].
         ---
         from llama_cloud.client import LlamaCloud
 
         client = LlamaCloud(
             token="YOUR_TOKEN",
         )
-        client.llama_extract.list_extraction_agents(
-            project_id="string",
-        )
+        client.llama_extract.list_extraction_agents()
         """
         _response = self._client_wrapper.httpx_client.request(
             "GET",
             urllib.parse.urljoin(f"{self._client_wrapper.get_base_url()}/", "api/v1/extraction/extraction-agents"),
-            params=remove_none_from_dict({"project_id": project_id}),
+            params=remove_none_from_dict({"project_id": project_id, "organization_id": organization_id}),
             headers=self._client_wrapper.get_headers(),
             timeout=60,
         )
@@ -166,12 +168,16 @@ class LlamaExtractClient:
             raise ApiError(status_code=_response.status_code, body=_response.text)
         raise ApiError(status_code=_response.status_code, body=_response_json)
 
-    def get_extraction_agent_by_name(self, name: str, *, project_id: typing.Optional[str] = None) -> ExtractAgent:
+    def get_extraction_agent_by_name(
+        self, name: str, *, project_id: typing.Optional[str] = None, organization_id: typing.Optional[str] = None
+    ) -> ExtractAgent:
         """
         Parameters:
             - name: str.
 
             - project_id: typing.Optional[str].
+
+            - organization_id: typing.Optional[str].
         ---
         from llama_cloud.client import LlamaCloud
 
@@ -187,7 +193,7 @@ class LlamaExtractClient:
             urllib.parse.urljoin(
                 f"{self._client_wrapper.get_base_url()}/", f"api/v1/extraction/extraction-agents/by-name/{name}"
             ),
-            params=remove_none_from_dict({"project_id": project_id}),
+            params=remove_none_from_dict({"project_id": project_id, "organization_id": organization_id}),
             headers=self._client_wrapper.get_headers(),
             timeout=60,
         )
@@ -608,10 +614,16 @@ class LlamaExtractClient:
             raise ApiError(status_code=_response.status_code, body=_response.text)
         raise ApiError(status_code=_response.status_code, body=_response_json)
 
-    def get_job_result(self, job_id: str) -> ExtractResultset:
+    def get_job_result(
+        self, job_id: str, *, project_id: typing.Optional[str] = None, organization_id: typing.Optional[str] = None
+    ) -> ExtractResultset:
         """
         Parameters:
             - job_id: str.
+
+            - project_id: typing.Optional[str].
+
+            - organization_id: typing.Optional[str].
         ---
         from llama_cloud.client import LlamaCloud
 
@@ -625,6 +637,7 @@ class LlamaExtractClient:
         _response = self._client_wrapper.httpx_client.request(
             "GET",
             urllib.parse.urljoin(f"{self._client_wrapper.get_base_url()}/", f"api/v1/extraction/jobs/{job_id}/result"),
+            params=remove_none_from_dict({"project_id": project_id, "organization_id": organization_id}),
             headers=self._client_wrapper.get_headers(),
             timeout=60,
         )
@@ -706,10 +719,16 @@ class LlamaExtractClient:
             raise ApiError(status_code=_response.status_code, body=_response.text)
         raise ApiError(status_code=_response.status_code, body=_response_json)
 
-    def get_run_by_job_id(self, job_id: str) -> ExtractRun:
+    def get_run_by_job_id(
+        self, job_id: str, *, project_id: typing.Optional[str] = None, organization_id: typing.Optional[str] = None
+    ) -> ExtractRun:
         """
         Parameters:
             - job_id: str.
+
+            - project_id: typing.Optional[str].
+
+            - organization_id: typing.Optional[str].
         ---
         from llama_cloud.client import LlamaCloud
 
@@ -723,6 +742,7 @@ class LlamaExtractClient:
         _response = self._client_wrapper.httpx_client.request(
             "GET",
             urllib.parse.urljoin(f"{self._client_wrapper.get_base_url()}/", f"api/v1/extraction/runs/by-job/{job_id}"),
+            params=remove_none_from_dict({"project_id": project_id, "organization_id": organization_id}),
             headers=self._client_wrapper.get_headers(),
             timeout=60,
         )
@@ -736,10 +756,16 @@ class LlamaExtractClient:
             raise ApiError(status_code=_response.status_code, body=_response.text)
         raise ApiError(status_code=_response.status_code, body=_response_json)
 
-    def get_run(self, run_id: str) -> ExtractRun:
+    def get_run(
+        self, run_id: str, *, project_id: typing.Optional[str] = None, organization_id: typing.Optional[str] = None
+    ) -> ExtractRun:
         """
         Parameters:
             - run_id: str.
+
+            - project_id: typing.Optional[str].
+
+            - organization_id: typing.Optional[str].
         ---
         from llama_cloud.client import LlamaCloud
 
@@ -753,6 +779,7 @@ class LlamaExtractClient:
         _response = self._client_wrapper.httpx_client.request(
             "GET",
             urllib.parse.urljoin(f"{self._client_wrapper.get_base_url()}/", f"api/v1/extraction/runs/{run_id}"),
+            params=remove_none_from_dict({"project_id": project_id, "organization_id": organization_id}),
             headers=self._client_wrapper.get_headers(),
             timeout=60,
         )
@@ -766,10 +793,16 @@ class LlamaExtractClient:
             raise ApiError(status_code=_response.status_code, body=_response.text)
         raise ApiError(status_code=_response.status_code, body=_response_json)
 
-    def delete_extraction_run(self, run_id: str) -> typing.Any:
+    def delete_extraction_run(
+        self, run_id: str, *, project_id: typing.Optional[str] = None, organization_id: typing.Optional[str] = None
+    ) -> typing.Any:
         """
         Parameters:
             - run_id: str.
+
+            - project_id: typing.Optional[str].
+
+            - organization_id: typing.Optional[str].
         ---
         from llama_cloud.client import LlamaCloud
 
@@ -783,6 +816,7 @@ class LlamaExtractClient:
         _response = self._client_wrapper.httpx_client.request(
             "DELETE",
             urllib.parse.urljoin(f"{self._client_wrapper.get_base_url()}/", f"api/v1/extraction/runs/{run_id}"),
+            params=remove_none_from_dict({"project_id": project_id, "organization_id": organization_id}),
             headers=self._client_wrapper.get_headers(),
             timeout=60,
         )
@@ -801,24 +835,26 @@ class AsyncLlamaExtractClient:
     def __init__(self, *, client_wrapper: AsyncClientWrapper):
         self._client_wrapper = client_wrapper
 
-    async def list_extraction_agents(self, *, project_id: str) -> typing.List[ExtractAgent]:
+    async def list_extraction_agents(
+        self, *, project_id: typing.Optional[str] = None, organization_id: typing.Optional[str] = None
+    ) -> typing.List[ExtractAgent]:
         """
         Parameters:
-            - project_id: str.
+            - project_id: typing.Optional[str].
+
+            - organization_id: typing.Optional[str].
         ---
         from llama_cloud.client import AsyncLlamaCloud
 
         client = AsyncLlamaCloud(
             token="YOUR_TOKEN",
         )
-        await client.llama_extract.list_extraction_agents(
-            project_id="string",
-        )
+        await client.llama_extract.list_extraction_agents()
         """
         _response = await self._client_wrapper.httpx_client.request(
             "GET",
             urllib.parse.urljoin(f"{self._client_wrapper.get_base_url()}/", "api/v1/extraction/extraction-agents"),
-            params=remove_none_from_dict({"project_id": project_id}),
+            params=remove_none_from_dict({"project_id": project_id, "organization_id": organization_id}),
             headers=self._client_wrapper.get_headers(),
             timeout=60,
         )
@@ -927,12 +963,16 @@ class AsyncLlamaExtractClient:
             raise ApiError(status_code=_response.status_code, body=_response.text)
         raise ApiError(status_code=_response.status_code, body=_response_json)
 
-    async def get_extraction_agent_by_name(self, name: str, *, project_id: typing.Optional[str] = None) -> ExtractAgent:
+    async def get_extraction_agent_by_name(
+        self, name: str, *, project_id: typing.Optional[str] = None, organization_id: typing.Optional[str] = None
+    ) -> ExtractAgent:
         """
         Parameters:
             - name: str.
 
             - project_id: typing.Optional[str].
+
+            - organization_id: typing.Optional[str].
         ---
         from llama_cloud.client import AsyncLlamaCloud
 
@@ -948,7 +988,7 @@ class AsyncLlamaExtractClient:
             urllib.parse.urljoin(
                 f"{self._client_wrapper.get_base_url()}/", f"api/v1/extraction/extraction-agents/by-name/{name}"
             ),
-            params=remove_none_from_dict({"project_id": project_id}),
+            params=remove_none_from_dict({"project_id": project_id, "organization_id": organization_id}),
             headers=self._client_wrapper.get_headers(),
             timeout=60,
         )
@@ -1369,10 +1409,16 @@ class AsyncLlamaExtractClient:
             raise ApiError(status_code=_response.status_code, body=_response.text)
         raise ApiError(status_code=_response.status_code, body=_response_json)
 
-    async def get_job_result(self, job_id: str) -> ExtractResultset:
+    async def get_job_result(
+        self, job_id: str, *, project_id: typing.Optional[str] = None, organization_id: typing.Optional[str] = None
+    ) -> ExtractResultset:
         """
         Parameters:
             - job_id: str.
+
+            - project_id: typing.Optional[str].
+
+            - organization_id: typing.Optional[str].
         ---
         from llama_cloud.client import AsyncLlamaCloud
 
@@ -1386,6 +1432,7 @@ class AsyncLlamaExtractClient:
         _response = await self._client_wrapper.httpx_client.request(
             "GET",
             urllib.parse.urljoin(f"{self._client_wrapper.get_base_url()}/", f"api/v1/extraction/jobs/{job_id}/result"),
+            params=remove_none_from_dict({"project_id": project_id, "organization_id": organization_id}),
             headers=self._client_wrapper.get_headers(),
             timeout=60,
         )
@@ -1467,10 +1514,16 @@ class AsyncLlamaExtractClient:
             raise ApiError(status_code=_response.status_code, body=_response.text)
         raise ApiError(status_code=_response.status_code, body=_response_json)
 
-    async def get_run_by_job_id(self, job_id: str) -> ExtractRun:
+    async def get_run_by_job_id(
+        self, job_id: str, *, project_id: typing.Optional[str] = None, organization_id: typing.Optional[str] = None
+    ) -> ExtractRun:
         """
         Parameters:
             - job_id: str.
+
+            - project_id: typing.Optional[str].
+
+            - organization_id: typing.Optional[str].
         ---
         from llama_cloud.client import AsyncLlamaCloud
 
@@ -1484,6 +1537,7 @@ class AsyncLlamaExtractClient:
         _response = await self._client_wrapper.httpx_client.request(
             "GET",
             urllib.parse.urljoin(f"{self._client_wrapper.get_base_url()}/", f"api/v1/extraction/runs/by-job/{job_id}"),
+            params=remove_none_from_dict({"project_id": project_id, "organization_id": organization_id}),
             headers=self._client_wrapper.get_headers(),
             timeout=60,
         )
@@ -1497,10 +1551,16 @@ class AsyncLlamaExtractClient:
             raise ApiError(status_code=_response.status_code, body=_response.text)
         raise ApiError(status_code=_response.status_code, body=_response_json)
 
-    async def get_run(self, run_id: str) -> ExtractRun:
+    async def get_run(
+        self, run_id: str, *, project_id: typing.Optional[str] = None, organization_id: typing.Optional[str] = None
+    ) -> ExtractRun:
         """
         Parameters:
             - run_id: str.
+
+            - project_id: typing.Optional[str].
+
+            - organization_id: typing.Optional[str].
         ---
         from llama_cloud.client import AsyncLlamaCloud
 
@@ -1514,6 +1574,7 @@ class AsyncLlamaExtractClient:
         _response = await self._client_wrapper.httpx_client.request(
             "GET",
             urllib.parse.urljoin(f"{self._client_wrapper.get_base_url()}/", f"api/v1/extraction/runs/{run_id}"),
+            params=remove_none_from_dict({"project_id": project_id, "organization_id": organization_id}),
             headers=self._client_wrapper.get_headers(),
             timeout=60,
         )
@@ -1527,10 +1588,16 @@ class AsyncLlamaExtractClient:
             raise ApiError(status_code=_response.status_code, body=_response.text)
         raise ApiError(status_code=_response.status_code, body=_response_json)
 
-    async def delete_extraction_run(self, run_id: str) -> typing.Any:
+    async def delete_extraction_run(
+        self, run_id: str, *, project_id: typing.Optional[str] = None, organization_id: typing.Optional[str] = None
+    ) -> typing.Any:
         """
         Parameters:
             - run_id: str.
+
+            - project_id: typing.Optional[str].
+
+            - organization_id: typing.Optional[str].
         ---
         from llama_cloud.client import AsyncLlamaCloud
 
@@ -1544,6 +1611,7 @@ class AsyncLlamaExtractClient:
         _response = await self._client_wrapper.httpx_client.request(
             "DELETE",
             urllib.parse.urljoin(f"{self._client_wrapper.get_base_url()}/", f"api/v1/extraction/runs/{run_id}"),
+            params=remove_none_from_dict({"project_id": project_id, "organization_id": organization_id}),
             headers=self._client_wrapper.get_headers(),
             timeout=60,
         )

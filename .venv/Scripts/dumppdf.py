@@ -1,4 +1,4 @@
-#!C:\Users\vjayp\workspace\AI\legal_ai\.venv\Scripts\python.exe
+#!C:\Users\vjayp\workspace\AI\legal_ai\legal_ai\.venv\Scripts\python.exe
 """Extract pdf structure in XML format"""
 
 import logging

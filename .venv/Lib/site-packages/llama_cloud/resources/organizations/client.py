@@ -408,14 +408,18 @@ class OrganizationsClient:
             raise ApiError(status_code=_response.status_code, body=_response.text)
         raise ApiError(status_code=_response.status_code, body=_response_json)
 
-    def remove_users_from_organization(self, organization_id: str, member_user_id: str) -> None:
+    def remove_users_from_organization(
+        self, organization_id: str, member_user_id: str, *, request: typing.Optional[typing.List[str]] = None
+    ) -> None:
         """
-        Remove users from an organization by email.
+        Remove users from an organization.
 
         Parameters:
             - organization_id: str.
 
             - member_user_id: str.
+
+            - request: typing.Optional[typing.List[str]].
         ---
         from llama_cloud.client import LlamaCloud
 
@@ -433,6 +437,7 @@ class OrganizationsClient:
                 f"{self._client_wrapper.get_base_url()}/",
                 f"api/v1/organizations/{organization_id}/users/{member_user_id}",
             ),
+            json=jsonable_encoder(request),
             headers=self._client_wrapper.get_headers(),
             timeout=60,
         )
@@ -1109,14 +1114,18 @@ class AsyncOrganizationsClient:
             raise ApiError(status_code=_response.status_code, body=_response.text)
         raise ApiError(status_code=_response.status_code, body=_response_json)
 
-    async def remove_users_from_organization(self, organization_id: str, member_user_id: str) -> None:
+    async def remove_users_from_organization(
+        self, organization_id: str, member_user_id: str, *, request: typing.Optional[typing.List[str]] = None
+    ) -> None:
         """
-        Remove users from an organization by email.
+        Remove users from an organization.
 
         Parameters:
             - organization_id: str.
 
             - member_user_id: str.
+
+            - request: typing.Optional[typing.List[str]].
         ---
         from llama_cloud.client import AsyncLlamaCloud
 
@@ -1134,6 +1143,7 @@ class AsyncOrganizationsClient:
                 f"{self._client_wrapper.get_base_url()}/",
                 f"api/v1/organizations/{organization_id}/users/{member_user_id}",
             ),
+            json=jsonable_encoder(request),
             headers=self._client_wrapper.get_headers(),
             timeout=60,
         )

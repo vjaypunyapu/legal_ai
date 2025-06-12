@@ -21,6 +21,7 @@ class UserOrganizationDelete(pydantic.BaseModel):
 
     user_id: typing.Optional[str]
     email: typing.Optional[str]
+    project_id_list: typing.Optional[typing.List[str]]
 
     def json(self, **kwargs: typing.Any) -> str:
         kwargs_with_defaults: typing.Any = {"by_alias": True, "exclude_unset": True, **kwargs}

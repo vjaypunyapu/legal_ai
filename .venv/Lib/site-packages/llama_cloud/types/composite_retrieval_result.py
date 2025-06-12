@@ -5,6 +5,7 @@ import typing
 
 from ..core.datetime_utils import serialize_datetime
 from .composite_retrieved_text_node_with_score import CompositeRetrievedTextNodeWithScore
+from .page_figure_node_with_score import PageFigureNodeWithScore
 from .page_screenshot_node_with_score import PageScreenshotNodeWithScore
 
 try:
@@ -21,7 +22,10 @@ class CompositeRetrievalResult(pydantic.BaseModel):
         description="The retrieved nodes from the composite retrieval."
     )
     image_nodes: typing.Optional[typing.List[PageScreenshotNodeWithScore]] = pydantic.Field(
-        description="The image nodes retrieved by the pipeline for the given query."
+        description="The image nodes retrieved by the pipeline for the given query. Deprecated - will soon be replaced with 'page_screenshot_nodes'."
+    )
+    page_figure_nodes: typing.Optional[typing.List[PageFigureNodeWithScore]] = pydantic.Field(
+        description="The page figure nodes retrieved by the pipeline for the given query."
     )
 
     def json(self, **kwargs: typing.Any) -> str:

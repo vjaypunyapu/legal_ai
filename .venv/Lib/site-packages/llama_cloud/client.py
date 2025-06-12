@@ -6,7 +6,6 @@ import httpx
 
 from .core.client_wrapper import AsyncClientWrapper, SyncClientWrapper
 from .environment import LlamaCloudEnvironment
-from .resources.admin.client import AdminClient, AsyncAdminClient
 from .resources.beta.client import AsyncBetaClient, BetaClient
 from .resources.chat_apps.client import AsyncChatAppsClient, ChatAppsClient
 from .resources.data_sinks.client import AsyncDataSinksClient, DataSinksClient
@@ -51,7 +50,6 @@ class LlamaCloud:
         self.evals = EvalsClient(client_wrapper=self._client_wrapper)
         self.parsing = ParsingClient(client_wrapper=self._client_wrapper)
         self.chat_apps = ChatAppsClient(client_wrapper=self._client_wrapper)
-        self.admin = AdminClient(client_wrapper=self._client_wrapper)
         self.llama_extract = LlamaExtractClient(client_wrapper=self._client_wrapper)
         self.reports = ReportsClient(client_wrapper=self._client_wrapper)
         self.beta = BetaClient(client_wrapper=self._client_wrapper)
@@ -84,7 +82,6 @@ class AsyncLlamaCloud:
         self.evals = AsyncEvalsClient(client_wrapper=self._client_wrapper)
         self.parsing = AsyncParsingClient(client_wrapper=self._client_wrapper)
         self.chat_apps = AsyncChatAppsClient(client_wrapper=self._client_wrapper)
-        self.admin = AsyncAdminClient(client_wrapper=self._client_wrapper)
         self.llama_extract = AsyncLlamaExtractClient(client_wrapper=self._client_wrapper)
         self.reports = AsyncReportsClient(client_wrapper=self._client_wrapper)
         self.beta = AsyncBetaClient(client_wrapper=self._client_wrapper)

@@ -30,6 +30,7 @@ class JobsClient:
         job_name: typing.Optional[str] = None,
         limit: typing.Optional[int] = None,
         offset: typing.Optional[int] = None,
+        sort: typing.Optional[str] = None,
         include_usage_metrics: typing.Optional[bool] = None,
         project_id: typing.Optional[str] = None,
         organization_id: typing.Optional[str] = None,
@@ -47,6 +48,8 @@ class JobsClient:
             - limit: typing.Optional[int].
 
             - offset: typing.Optional[int].
+
+            - sort: typing.Optional[str].
 
             - include_usage_metrics: typing.Optional[bool]. Deprecated: This parameter is no longer supported as we've moved to usage v2. It will be removed in a future version.
 
@@ -69,6 +72,7 @@ class JobsClient:
                     "job_name": job_name,
                     "limit": limit,
                     "offset": offset,
+                    "sort": sort,
                     "include_usage_metrics": include_usage_metrics,
                     "project_id": project_id,
                     "organization_id": organization_id,
@@ -98,6 +102,7 @@ class AsyncJobsClient:
         job_name: typing.Optional[str] = None,
         limit: typing.Optional[int] = None,
         offset: typing.Optional[int] = None,
+        sort: typing.Optional[str] = None,
         include_usage_metrics: typing.Optional[bool] = None,
         project_id: typing.Optional[str] = None,
         organization_id: typing.Optional[str] = None,
@@ -115,6 +120,8 @@ class AsyncJobsClient:
             - limit: typing.Optional[int].
 
             - offset: typing.Optional[int].
+
+            - sort: typing.Optional[str].
 
             - include_usage_metrics: typing.Optional[bool]. Deprecated: This parameter is no longer supported as we've moved to usage v2. It will be removed in a future version.
 
@@ -137,6 +144,7 @@ class AsyncJobsClient:
                     "job_name": job_name,
                     "limit": limit,
                     "offset": offset,
+                    "sort": sort,
                     "include_usage_metrics": include_usage_metrics,
                     "project_id": project_id,
                     "organization_id": organization_id,

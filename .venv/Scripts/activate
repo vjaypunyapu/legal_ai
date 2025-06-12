@@ -38,7 +38,7 @@ deactivate () {
 # unset irrelevant variables
 deactivate nondestructive
 
-VIRTUAL_ENV="C:\Users\vjayp\workspace\AI\legal_ai\.venv"
+VIRTUAL_ENV="C:\Users\vjayp\workspace\AI\legal_ai\legal_ai\.venv"
 export VIRTUAL_ENV
 
 _OLD_VIRTUAL_PATH="$PATH"

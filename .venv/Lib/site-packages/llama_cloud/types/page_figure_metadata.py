@@ -21,6 +21,7 @@ class PageFigureMetadata(pydantic.BaseModel):
     figure_size: int = pydantic.Field(description="The size of the figure in bytes")
     is_likely_noise: typing.Optional[bool] = pydantic.Field(description="Whether the figure is likely to be noise")
     confidence: float = pydantic.Field(description="The confidence of the figure")
+    metadata: typing.Optional[typing.Dict[str, typing.Any]]
 
     def json(self, **kwargs: typing.Any) -> str:
         kwargs_with_defaults: typing.Any = {"by_alias": True, "exclude_unset": True, **kwargs}
