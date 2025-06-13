@@ -102,7 +102,7 @@ python-jose==3.5.0
 python-multipart==0.0.20
 pyttsx3==2.98
 pytz==2025.2
-pywin32==308
+pywin32
 PyYAML==6.0.2
 referencing==0.36.2
 regex==2024.11.6
