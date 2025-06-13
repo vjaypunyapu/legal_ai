@@ -13,11 +13,7 @@ from passlib.context import CryptContext
 from sqlalchemy import Column, String, Boolean, DateTime, create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker, Session
 
-from llama_index.core.readers.file.base import SimpleDirectoryReader
-
-
-
-from llama_index.core import VectorStoreIndex, Settings
+from llama_index.core import VectorStoreIndex, Settings, SimpleDirectoryReader, load_index_from_storage, StorageContext
 from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 from llama_index.llms.ollama import Ollama
 from llama_index.core.node_parser import SentenceSplitter
@@ -108,36 +104,28 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
 @app.post("/ask")
 def ask_question(file: UploadFile = File(...), question: str = Form(...), user: User = Depends(get_current_user)):
     try:
-        with open("temp.pdf", "wb") as f:
-            f.write(file.file.read())
+        temp_file_path = "temp.pdf"
+        with open(temp_file_path, "wb") as f:
+            shutil.copyfileobj(file.file, f)
 
-        doc = fitz.open("temp.pdf")
-        full_text = ""
-        for page in doc:
-            full_text += page.get_text()
+        doc = fitz.open(temp_file_path)
+        with open("temp.txt", "w", encoding="utf-8") as f:
+            for page in doc:
+                f.write(page.get_text())
         doc.close()
 
-        with open("temp.txt", "w", encoding="utf-8") as f:
-            f.write(full_text)
-
         documents = SimpleDirectoryReader(input_files=["temp.txt"]).load_data()
+        parser = SentenceSplitter(chunk_size=1024, chunk_overlap=100)
+        nodes = parser.get_nodes_from_documents(documents)
 
-        # Set up embedding and LLM
-        from pathlib import Path
+        Settings.embed_model = HuggingFaceEmbedding(model_name="sentence-transformers/all-MiniLM-L6-v2", cache_folder=".cache")
+        Settings.llm = Ollama(model="mistral")
 
-        Settings.embed_model = HuggingFaceEmbedding(
-            model_name="sentence-transformers/all-MiniLM-L6-v2",
-            cache_folder=Path("./hf_cache")
+        index = VectorStoreIndex(nodes)
+        query_engine = index.as_query_engine(
+            response_mode="compact_and_refine",
+            response_synthesizer=CompactAndRefine()
         )
-
-
-        Settings.llm = Ollama(
-            model="mistral",
-            request_timeout=180  # seconds
-        )
-
-        index = VectorStoreIndex.from_documents(documents)
-        query_engine = index.as_query_engine()
         response = query_engine.query(question)
 
         return {"answer": response.response}
@@ -147,7 +135,6 @@ def ask_question(file: UploadFile = File(...), question: str = Form(...), user: 
         raise HTTPException(status_code=500, detail=f"PDF/Q&A error: {str(e)}")
     finally:
         file.file.close()
-
 
 @app.get("/admin/users")
 def get_users(db: Session = Depends(get_db)):
