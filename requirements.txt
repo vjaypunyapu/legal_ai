@@ -96,13 +96,13 @@ pydeck==0.9.1
 PyMuPDF==1.26.0
 pyparsing==3.1.4
 pypdf==4.3.1
-pypiwin32==223
+# pypiwin32==223
 python-dateutil==2.9.0.post0
 python-jose==3.5.0
 python-multipart==0.0.20
 pyttsx3==2.98
 pytz==2025.2
-pywin32
+# pywin32
 PyYAML==6.0.2
 referencing==0.36.2
 regex==2024.11.6
