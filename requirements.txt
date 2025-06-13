@@ -44,7 +44,7 @@ huggingface-hub==0.33.0
 idna==3.10
 itsdangerous==2.2.0
 jax==0.4.33
-jaxlib==0.4.33
+jaxlib==0.4.36
 Jinja2==3.1.5
 jiter==0.10.0
 joblib==1.5.1
