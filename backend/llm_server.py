@@ -119,7 +119,7 @@ def ask_question(file: UploadFile = File(...), question: str = Form(...), user: 
         nodes = parser.get_nodes_from_documents(documents)
 
         Settings.embed_model = HuggingFaceEmbedding(model_name="sentence-transformers/all-MiniLM-L6-v2", cache_folder=".cache")
-        Settings.llm = Ollama(model="mistral", request_timeout=120.0)
+        Settings.llm = Ollama(model="mistral", request_timeout=1200.0)
 
         index = VectorStoreIndex(nodes)
         query_engine = index.as_query_engine(

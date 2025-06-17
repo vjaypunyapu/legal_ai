@@ -51,8 +51,10 @@ joblib==1.5.1
 jsonschema==4.24.0
 jsonschema-specifications==2025.4.1
 kiwisolver==1.4.7
+llama-index-llms-ollama
 llama-index-agent-openai==0.2.9
 llama-index-cli==0.1.13
+llama-index-embeddings-huggingface
 llama-index-embeddings-openai==0.1.11
 llama-index-indices-managed-llama-cloud==0.1.6
 llama-index-legacy==0.9.48.post4
