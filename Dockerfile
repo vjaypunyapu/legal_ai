@@ -1,32 +1,32 @@
-# Dockerfile to run full legal_ai app with frontend (Streamlit), backend (FastAPI), and Ollama (Mistral)
-
-# Use base image with Python
+# Use official Python image
 FROM python:3.11-slim
+
+# Set environment vars
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV PORT=8080
+
+# Set work directory
+WORKDIR /app
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
     build-essential \
-    git \
-    curl \
+    libpoppler-cpp-dev \
+    pkg-config \
+    python3-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Ollama
-RUN curl -fsSL https://ollama.com/install.sh | sh
-
-# Set up app directories
-WORKDIR /app
-COPY . /app
-
-# Set environment variables
-ENV PYTHONUNBUFFERED=1 \
-    OLLAMA_HOST=http://localhost:11434
-
 # Install Python dependencies
-RUN pip install --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+COPY requirements.txt .
+RUN pip install --upgrade pip
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Expose ports for FastAPI (8000) and Streamlit (8501)
-EXPOSE 8000 8501
+# Copy your application
+COPY . .
 
-# Start both services using a process manager
-CMD ["bash", "-c", "ollama serve & sleep 15 && uvicorn backend.llm_server:app --host 0.0.0.0 --port 8000 & streamlit run app.py --server.port 8501 --server.address 0.0.0.0"]
+# Expose port 8080
+EXPOSE 8080
+
+# Run the backend app with uvicorn
+CMD ["uvicorn", "backend.llm_server:app", "--host", "0.0.0.0", "--port", "8080"]

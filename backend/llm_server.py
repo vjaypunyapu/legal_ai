@@ -188,3 +188,10 @@ def force_activate_user(username: str = Query(...), db: Session = Depends(get_db
     user.activated = True
     db.commit()
     return {"detail": "User manually activated by admin"}
+
+# Use PORT env variable or default to 8080
+port = int(os.environ.get("PORT", 8080))
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("backend.llm_server:app", host="0.0.0.0", port=port, reload=False)
